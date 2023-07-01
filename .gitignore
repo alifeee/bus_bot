@@ -1,0 +1,5 @@
+# copied requests
+requests/
+
+# python
+__pycache__/
