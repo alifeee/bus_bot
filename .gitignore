@@ -3,3 +3,6 @@ requests/
 
 # python
 __pycache__/
+
+# secrets
+credentials.json
