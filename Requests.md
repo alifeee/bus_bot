@@ -4,6 +4,8 @@ More information about specific requests.
 
 ## Eligible journeys
 
+These get all stops etc, so bot user can select the stops they use, to filter results to only those stops.
+
 ```yaml
 data: list (of days)
   ...
@@ -41,7 +43,12 @@ All stop information is retrievable from eligible journeys. We do not need to du
 
 ## Journeys
 
-These are specific to the pickup/dropoff points.
+These are specific to the pickup/dropoff points. Bot user should be able to select some of these to track.
+
+Unsure if they will change week-on-week, so, either:
+
+- bot user picks two stops, and a time, and we check if it exists, and track it (if not, notify user)
+- bot user picks journeys to track at the start of each week (perhaps annoying, but guarantees that journeys exist)
 
 ```yaml
 data: list of journeys
@@ -56,4 +63,14 @@ data: list of journeys
   destination:
     id: string
     stop_id: string
+```
+
+## Capacity
+
+This links the `journey_id` from Journeys to a capacity. Usually it is 0 if the book is booked out.
+
+We would notify the bot user if the capacity becomes greater than after being 0.
+
+```yaml
+string: int
 ```
