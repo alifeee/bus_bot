@@ -75,7 +75,34 @@ def get_all_journeys(pass_id: str) -> list[Journey]:
     return journeys
 
 
+def get_all_stops_from_journeys(journeys: list[Journey]) -> list[Stop]:
+    """Get all stops from a list of journeys
+    Unique only, strip route metadata
+    """
+    stops = []
+    stop_ids = set()
+
+    for journey in journeys:
+        for stop in journey.stops:
+            if stop.stop_id not in stop_ids:
+                blank_stop = Stop(stop_id=stop.stop_id, name=stop.name)
+                stops.append(blank_stop)
+                stop_ids.add(stop.stop_id)
+    return stops
+
+
 if __name__ == "__main__":
     creds = Credentials("credentials.json")
     all_journeys = get_all_journeys(creds.pass_id)
-    print(all_journeys)
+    print(f"Found {len(all_journeys)} journeys")
+    for jour in all_journeys:
+        print(
+            f"{jour.day.strftime('%a')}: {jour.stops[0].name} to {jour.stops[-1].name}"
+        )
+
+    print("\n")
+
+    all_stops = get_all_stops_from_journeys(all_journeys)
+    print(f"Found {len(all_stops)} stops")
+    for onestop in all_stops:
+        print(onestop)
