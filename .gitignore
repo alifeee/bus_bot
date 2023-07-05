@@ -2,6 +2,7 @@
 requests/
 
 # python
+env/
 __pycache__/
 
 # secrets
