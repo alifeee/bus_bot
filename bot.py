@@ -9,8 +9,8 @@ from dotenv import load_dotenv
 from telegram import *
 from telegram.ext import *
 
-from busapi import Credentials
-from bothandlers.start import start_handler
+from busbot.busapi import Credentials
+from busbot.bothandlers.start import start_handler
 
 # I don't use this but you can use it to set commands with @botfather with /setcommands
 _ = """
