@@ -53,8 +53,8 @@ def get_all_journeys(pass_id: str) -> list[Journey]:
                 )
                 stops.append(
                     Stop(
-                        stop_id=stop["id"],
-                        name=stop["name"],
+                        stop_id=stop["location"]["stop_id"],
+                        name=stop["location"]["stop_name"],
                         journey_stop_id=stop["journey_stop_id"],
                         journey_stop_time=stop_time,
                     )
