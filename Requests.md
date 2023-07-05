@@ -45,10 +45,7 @@ All stop information is retrievable from eligible journeys. We do not need to du
 
 These are specific to the pickup/dropoff points. Bot user should be able to select some of these to track.
 
-Unsure if they will change week-on-week, so, either:
-
-- bot user picks two stops, and a time, and we check if it exists, and track it (if not, notify user)
-- bot user picks journeys to track at the start of each week (perhaps annoying, but guarantees that journeys exist)
+Bot user picks journeys to track at the start of each week (perhaps annoying, but guarantees that journeys exist)
 
 ```yaml
 data: list of journeys
