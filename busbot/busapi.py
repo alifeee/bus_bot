@@ -12,6 +12,7 @@ import requests
 ELIGIBLE_JOURNEYS_URL = (
     "https://app.zeelo.co/api/travels/{pass_id}/elegible-journey-groups"
 )
+CAPACITY_URL = "https://app.zeelo.co/api/journeys/capacity_between_stops"
 
 DATETIME_FORMAT = "%Y%m%d%H%M%S Europe/London"
 
@@ -91,6 +92,38 @@ def get_all_stops_from_journeys(journeys: list[Journey]) -> list[Stop]:
     return stops
 
 
+def get_journey_capacities(
+    journeys: list[Journey],
+    start_stops: list[Stop] or Stop,
+    end_stops: list[Stop] or Stop,
+) -> dict[str, int]:
+    """Get the capacity for a journey between two stops"""
+    if isinstance(start_stops, Stop):
+        start_stops = [start_stops] * len(journeys)
+    if isinstance(end_stops, Stop):
+        end_stops = [end_stops] * len(journeys)
+    url = CAPACITY_URL
+    body = {}
+    for journey, start, end in zip(journeys, start_stops, end_stops):
+        journey_stops = journey.stops
+        if start not in journey_stops:
+            raise ValueError(f"{start} not in {journey_stops}")
+        if end not in journey_stops:
+            raise ValueError(f"{end} not in {journey_stops}")
+        body[journey.journey_id] = {
+            "journey_id": journey.journey_id,
+            "pickup_stop_id": start.stop_id,
+            "dropoff_stop_id": end.stop_id,
+        }
+
+    response = requests.post(url, json=body, timeout=5)
+    response.raise_for_status()
+
+    result = json.loads(response.text)
+
+    return result
+
+
 if __name__ == "__main__":
     creds = Credentials("credentials.json")
     all_journeys = get_all_journeys(creds.pass_id)
@@ -106,3 +139,19 @@ if __name__ == "__main__":
     print(f"Found {len(all_stops)} stops")
     for onestop in all_stops:
         print(onestop)
+
+    print("\n")
+
+    all_start_stops = [jour.stops[0] for jour in all_journeys]
+    all_end_stops = [jour.stops[-1] for jour in all_journeys]
+    capacities = get_journey_capacities(all_journeys, all_start_stops, all_end_stops)
+    print(f"Found {len(capacities)} capacities")
+    for cap in capacities:
+        # find the journey
+        for jour in all_journeys:
+            if jour.journey_id == cap:
+                break
+        time = jour.stops[0].journey_stop_time.strftime("%a %H:%M")
+        print(
+            f"({capacities[cap]}) {time}: {jour.stops[0].name} to {jour.stops[-1].name}"
+        )
