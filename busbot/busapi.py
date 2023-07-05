@@ -4,8 +4,8 @@
 import datetime
 import json
 
-from stop import Stop
-from journey import Journey
+from .stop import Stop
+from .journey import Journey
 
 import requests
 

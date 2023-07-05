@@ -3,7 +3,7 @@
 
 import datetime
 from dataclasses import dataclass
-from stop import Stop
+from .stop import Stop
 
 
 @dataclass
