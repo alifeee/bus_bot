@@ -4,10 +4,11 @@
 import datetime
 import json
 
+import requests
+
 from .stop import Stop
 from .journey import Journey
 
-import requests
 
 ELIGIBLE_JOURNEYS_URL = (
     "https://app.zeelo.co/api/travels/{pass_id}/elegible-journey-groups"
@@ -102,6 +103,7 @@ def get_journey_capacities(
         start_stops = [start_stops] * len(journeys)
     if isinstance(end_stops, Stop):
         end_stops = [end_stops] * len(journeys)
+
     url = CAPACITY_URL
     body = {}
     for journey, start, end in zip(journeys, start_stops, end_stops):
@@ -112,8 +114,8 @@ def get_journey_capacities(
             raise ValueError(f"{end} not in {journey_stops}")
         body[journey.journey_id] = {
             "journey_id": journey.journey_id,
-            "pickup_stop_id": start.stop_id,
-            "dropoff_stop_id": end.stop_id,
+            "pickup_stop_id": start.journey_stop_id,
+            "dropoff_stop_id": end.journey_stop_id,
         }
 
     response = requests.post(url, json=body, timeout=5)
