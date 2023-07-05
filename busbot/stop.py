@@ -2,13 +2,14 @@
 """
 
 from dataclasses import dataclass
+import datetime
 
 
 @dataclass
 class Stop:
     """Bus stop"""
 
-    id: str
+    stop_id: str
     name: str
 
     # when part of a journey, the stop has a specific journey-unqiue id
