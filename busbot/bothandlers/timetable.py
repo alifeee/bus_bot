@@ -52,9 +52,16 @@ async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
             continue
         if end_stop_id not in [s.stop_id for s in journey.stops]:
             continue
+
         poll_journeys.append(journey)
-        start_stop = get_stop_by_id(journey.stops, start_stop_id)
-        end_stop = get_stop_by_id(journey.stops, end_stop_id)
+
+        if journey.type == "OUTBOUND":
+            start_stop = get_stop_by_id(journey.stops, start_stop_id)
+            end_stop = get_stop_by_id(journey.stops, end_stop_id)
+        elif journey.type == "RETURN":
+            start_stop = get_stop_by_id(journey.stops, end_stop_id)
+            end_stop = get_stop_by_id(journey.stops, start_stop_id)
+
         poll_start_stops.append(start_stop)
         poll_end_stops.append(end_stop)
 
