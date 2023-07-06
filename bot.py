@@ -17,8 +17,7 @@ from busbot.bothandlers.error import error_handler
 # I don't use this but you can use it to set commands with @botfather with /setcommands
 _ = """
 start - set up
-forecast - upcoming pollen forecast
-help - help, info & privacy information
+timetable - get timetable
 """
 
 load_dotenv()
