@@ -21,6 +21,8 @@ Nice!
 I'll now only show journeys between {start} and {end}.
 
 Use /start to change this.
+
+Check /timetable for the capacities of all upcoming buses.
 """
 
 
