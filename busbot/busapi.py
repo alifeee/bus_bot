@@ -9,6 +9,7 @@ import requests
 from .stop import Stop
 from .journey import Journey
 
+REQUEST_TIMEOUT = 15
 
 ELIGIBLE_JOURNEYS_URL = (
     "https://app.zeelo.co/api/travels/{pass_id}/elegible-journey-groups"
@@ -34,7 +35,7 @@ class Credentials:
 def get_all_journeys(pass_id: str) -> list[Journey]:
     """Get all journeys for a pass id"""
     url = ELIGIBLE_JOURNEYS_URL.format(pass_id=pass_id)
-    response = requests.get(url, timeout=5)
+    response = requests.get(url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
 
     result = json.loads(response.text)
@@ -118,7 +119,7 @@ def get_journey_capacities(
             "dropoff_stop_id": end.journey_stop_id,
         }
 
-    response = requests.post(url, json=body, timeout=5)
+    response = requests.post(url, json=body, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
 
     result = json.loads(response.text)
