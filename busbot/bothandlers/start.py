@@ -18,7 +18,7 @@ Choose your start and end stops and I can filter out journeys to only show ones 
 _END_MESSAGE = """
 Nice!
 
-I'll now only show journeys between {start} and {end}.
+{state}
 
 Use /start to change this.
 
@@ -97,8 +97,8 @@ async def _confirm_choices(update: Update, context: ContextTypes.DEFAULT_TYPE):
         raise ValueError(f"Stop {start_stop_id} not found")
 
     await query.edit_message_text(
-        _START_MESSAGE.format(
-            state=f"Your start stop is: {start_stop.name}\nYour end stop is: {end_stop.name}\n\nUse /start again to change this :)"
+        _END_MESSAGE.format(
+            state=f"Your start stop is: {start_stop.name}\nYour end stop is: {end_stop.name}"
         )
     )
     return ConversationHandler.END
