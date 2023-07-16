@@ -3,6 +3,7 @@
 
 import datetime
 from dataclasses import dataclass
+from typing import Optional
 from .stop import Stop
 
 
@@ -14,3 +15,6 @@ class Journey:
     type: str
     stops: list[Stop]
     day: datetime.date
+
+    start_stop: Optional[Stop] = None
+    end_stop: Optional[Stop] = None

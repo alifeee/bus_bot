@@ -96,19 +96,21 @@ def get_all_stops_from_journeys(journeys: list[Journey]) -> list[Stop]:
 
 def get_journey_capacities(
     journeys: list[Journey],
-    start_stops: list[Stop] or Stop,
-    end_stops: list[Stop] or Stop,
 ) -> dict[str, int]:
     """Get the capacity for a journey between two stops"""
-    if isinstance(start_stops, Stop):
-        start_stops = [start_stops] * len(journeys)
-    if isinstance(end_stops, Stop):
-        end_stops = [end_stops] * len(journeys)
+    for journey in journeys:
+        if journey.start_stop is None or journey.end_stop is None:
+            raise ValueError(
+                f"""get_journey_capacities, journeys must have start/end stops.
+                Journey id {journey.journey_id} did not."""
+            )
 
     url = CAPACITY_URL
     body = {}
-    for journey, start, end in zip(journeys, start_stops, end_stops):
+    for journey in journeys:
         journey_stops = journey.stops
+        start = journey.start_stop
+        end = journey.end_stop
         if start not in journey_stops:
             raise ValueError(f"{start} not in {journey_stops}")
         if end not in journey_stops:
@@ -145,9 +147,10 @@ if __name__ == "__main__":
 
     print("\n")
 
-    all_start_stops = [jour.stops[0] for jour in all_journeys]
-    all_end_stops = [jour.stops[-1] for jour in all_journeys]
-    capacities = get_journey_capacities(all_journeys, all_start_stops, all_end_stops)
+    for jour in all_journeys:
+        jour.start_stop = jour.stops[0]
+        jour.end_stop = jour.stops[1]
+    capacities = get_journey_capacities(all_journeys)
     print(f"Found {len(capacities)} capacities")
     for cap in capacities:
         # find the journey

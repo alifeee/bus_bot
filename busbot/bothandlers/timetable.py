@@ -20,14 +20,14 @@ _TIMETABLE_ROW = """{time}: {journeytype} - {capacity} seats
 """
 
 
-def get_stop_by_id(stops: list[Stop], stop_id: str) -> Stop:
+def _get_stop_by_id(stops: list[Stop], stop_id: str) -> Stop:
     for stop in stops:
         if stop.stop_id == stop_id:
             return stop
     return None
 
 
-def get_journey_by_id(journeys: list[Journey], journey_id: str) -> Journey:
+def _get_journey_by_id(journeys: list[Journey], journey_id: str) -> Journey:
     for journey in journeys:
         if journey.journey_id == journey_id:
             return journey
@@ -38,39 +38,41 @@ async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = await update.message.reply_text("Getting timetable...")
     all_journeys = get_all_journeys(credentials.pass_id)
 
+    if len(all_journeys) == 0:
+        await message.edit_text(
+            "Something went wrong... no journeys found. Try again? or ask Alfie"
+        )
+        return ConversationHandler.END
+
     start_stop_id = context.user_data["start_stop_id"]
     end_stop_id = context.user_data["end_stop_id"]
     if start_stop_id is None or end_stop_id is None:
         await message.edit_text("Start or end stop not set. Use /start.")
         return ConversationHandler.END
 
-    poll_journeys = []
-    poll_start_stops = []
-    poll_end_stops = []
     for journey in all_journeys:
         if start_stop_id not in [s.stop_id for s in journey.stops]:
             continue
         if end_stop_id not in [s.stop_id for s in journey.stops]:
             continue
 
-        poll_journeys.append(journey)
-
         if journey.type == "OUTBOUND":
-            start_stop = get_stop_by_id(journey.stops, start_stop_id)
-            end_stop = get_stop_by_id(journey.stops, end_stop_id)
+            start_stop = _get_stop_by_id(journey.stops, start_stop_id)
+            end_stop = _get_stop_by_id(journey.stops, end_stop_id)
         elif journey.type == "RETURN":
-            start_stop = get_stop_by_id(journey.stops, end_stop_id)
-            end_stop = get_stop_by_id(journey.stops, start_stop_id)
+            start_stop = _get_stop_by_id(journey.stops, end_stop_id)
+            end_stop = _get_stop_by_id(journey.stops, start_stop_id)
 
-        poll_start_stops.append(start_stop)
-        poll_end_stops.append(end_stop)
+        journey.start_stop = start_stop
+        journey.end_stop = end_stop
 
-    capacities = get_journey_capacities(poll_journeys, poll_start_stops, poll_end_stops)
+    capacities = get_journey_capacities(all_journeys)
 
     timetable = ""
-    for journey, start_stop, end_stop in zip(
-        poll_journeys, poll_start_stops, poll_end_stops
-    ):
+    for journey in all_journeys:
+        start_stop = journey.start_stop
+        end_stop = journey.end_stop
+
         if journey.type == "OUTBOUND":
             time = start_stop.journey_stop_time
         elif journey.type == "RETURN":
@@ -82,8 +84,8 @@ async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
             capacity=capacities[journey.journey_id],
         )
 
-    start_stop_name = poll_start_stops[0].name
-    end_stop_name = poll_end_stops[0].name
+    start_stop_name = all_journeys[0].start_stop.name
+    end_stop_name = all_journeys[0].end_stop.name
     await message.edit_text(
         _TIMETABLE_MESSAGE.format(
             start=start_stop_name, end=end_stop_name, timetable=timetable
