@@ -72,6 +72,9 @@ MAIN_MENU_KEYBOARD = InlineKeyboardMarkup(
     ]
 )
 
+BACK_BUTTON_TEXT = "Back"
+BACK_BUTTON = ikb(BACK_BUTTON_TEXT)
+
 
 def _get_stop_by_id(stops: list[Stop], stop_id: str) -> Stop:
     for stop in stops:
@@ -157,7 +160,9 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
 
     await query.edit_message_text(
         _TRACK_JOURNEY_MESSAGE.format(day="", type=""),
-        reply_markup=InlineKeyboardMarkup([[ikb(day)] for day in days_of_week_sorted]),
+        reply_markup=InlineKeyboardMarkup(
+            [*[[ikb(day)] for day in days_of_week_sorted], [BACK_BUTTON]]
+        ),
     )
     return _CHOSEN_JOURNEY_DAY
 
@@ -168,6 +173,13 @@ async def _track_journey_choose_type(
     query = update.callback_query
     await query.answer()
 
+    if query.data == BACK_BUTTON_TEXT:
+        await query.edit_message_text(
+            _TRACK_JOURNEY_MESSAGE.format(day="", type=""),
+            reply_markup=MAIN_MENU_KEYBOARD,
+        )
+        return _CHOSEN_TRACK_OR_UNTRACK
+
     chosen_day = query.data
     context.user_data["chosen_day"] = chosen_day
     journey_dict = context.user_data["journey_dict"]
@@ -175,7 +187,9 @@ async def _track_journey_choose_type(
     journey_types = journey_dict[chosen_day].keys()
     await query.edit_message_text(
         _TRACK_JOURNEY_MESSAGE.format(day=f"\n\non {chosen_day}", type=""),
-        reply_markup=InlineKeyboardMarkup([[ikb(t)] for t in journey_types]),
+        reply_markup=InlineKeyboardMarkup(
+            [*[[ikb(t)] for t in journey_types], [BACK_BUTTON]]
+        ),
     )
     return _CHOSEN_JOURNEY_TYPE
 
@@ -187,13 +201,23 @@ async def _track_journey_choose_journey(
     await query.answer()
 
     chosen_day = context.user_data.get("chosen_day", None)
-    chosen_type = query.data
-    context.user_data["chosen_type"] = chosen_type
     journey_dict = context.user_data.get("journey_dict", {})
 
-    print(f"chosen_day: {chosen_day}")
-    print(f"chosen_type: {chosen_type}")
-    print(f"journey_dict: {journey_dict}")
+    if query.data == BACK_BUTTON_TEXT:
+        days_of_week_sorted = sorted(
+            journey_dict.keys(), key=lambda x: x.split(" ")[-1]
+        )
+
+        await query.edit_message_text(
+            _TRACK_JOURNEY_MESSAGE.format(day="", type=""),
+            reply_markup=InlineKeyboardMarkup(
+                [*[[ikb(day)] for day in days_of_week_sorted], [BACK_BUTTON]]
+            ),
+        )
+        return _CHOSEN_JOURNEY_DAY
+
+    chosen_type = query.data
+    context.user_data["chosen_type"] = chosen_type
 
     journey_times = journey_dict[chosen_day][chosen_type]
 
@@ -201,7 +225,9 @@ async def _track_journey_choose_journey(
         _TRACK_JOURNEY_MESSAGE.format(
             day=f"\n\non {chosen_day}", type=f"\n{chosen_type}"
         ),
-        reply_markup=InlineKeyboardMarkup([[ikb(t)] for t in journey_times.keys()]),
+        reply_markup=InlineKeyboardMarkup(
+            [*[[ikb(t)] for t in journey_times.keys()], [BACK_BUTTON]]
+        ),
     )
     return _CHOSEN_JOURNEY_TIME
 
@@ -214,6 +240,16 @@ async def _track_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chosen_type = context.user_data.get("chosen_type", None)
     chosen_time = query.data
     journey_dict = context.user_data.get("journey_dict", {})
+
+    if query.data == BACK_BUTTON_TEXT:
+        journey_types = journey_dict[chosen_day].keys()
+        await query.edit_message_text(
+            _TRACK_JOURNEY_MESSAGE.format(day=f"\n\non {chosen_day}", type=""),
+            reply_markup=InlineKeyboardMarkup(
+                [*[[ikb(t)] for t in journey_types], [BACK_BUTTON]]
+            ),
+        )
+        return _CHOSEN_JOURNEY_TYPE
 
     chosen_journey_id = journey_dict[chosen_day][chosen_type][chosen_time]
     tracked_journeys = context.user_data.get("tracked_journeys", [])
@@ -251,7 +287,7 @@ async def _untrack_journey(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(
         _UNTRACK_JOURNEY_MESSAGE,
         reply_markup=InlineKeyboardMarkup(
-            [[ikb(journey_id)] for journey_id in tracked_journey_ids]
+            [*[[ikb(journey_id)] for journey_id in tracked_journey_ids], [BACK_BUTTON]]
         ),
     )
     return _CHOSEN_JOURNEY_TO_UNTRACK
@@ -260,6 +296,13 @@ async def _untrack_journey(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _untrack_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+
+    if query.data == BACK_BUTTON_TEXT:
+        await query.edit_message_text(
+            _INITIAL_MESSAGE,
+            reply_markup=MAIN_MENU_KEYBOARD,
+        )
+        return _CHOSEN_TRACK_OR_UNTRACK
 
     journey_id = query.data
     tracked_journeys: list[str] = context.user_data.get("tracked_journeys", [])
