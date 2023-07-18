@@ -69,6 +69,7 @@ async def _choose_end_stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [
                 [InlineKeyboardButton(stop.name, callback_data=stop.stop_id)]
                 for stop in all_stops
+                if stop.stop_id != start_stop_id
             ]
         ),
     )
