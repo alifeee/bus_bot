@@ -47,20 +47,9 @@ def main():
         filepath="bot_data.pickle",
         store_data=PersistenceInput(user_data=True, bot_data=False),
     )
-    loop = asyncio.new_event_loop()
-    all_user_data = loop.run_until_complete(persistent_data.get_user_data())
-    logger.info("Loaded user data:", all_user_data)
-    loop.close()
-
-    async def add_credentials_to_application(application: Application) -> None:
-        application.bot_data["creds"] = Credentials("credentials.json")
 
     application = (
-        Application.builder()
-        .token(API_KEY)
-        .persistence(persistent_data)
-        .post_init(add_credentials_to_application)
-        .build()
+        Application.builder().token(API_KEY).persistence(persistent_data).build()
     )
 
     application.add_handler(start_handler)
@@ -68,9 +57,6 @@ def main():
     application.add_handler(track_handler)
 
     application.add_error_handler(error_handler)
-
-    for user_id, user_data in all_user_data.items():
-        continue
 
     application.run_polling()
 
