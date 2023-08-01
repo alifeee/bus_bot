@@ -1,5 +1,6 @@
 """/track - command to enable/disable tracking of journeys"""
 
+import datetime
 from telegram import *
 from telegram.ext import *
 
@@ -324,13 +325,17 @@ async def _untrack_journey(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     tracked_journeys = [journey for journey in tracked_journeys if journey is not None]
 
+    start_stop_id = context.bot_data[query.from_user.id].get("start_stop_id", None)
+    end_stop_id = context.bot_data[query.from_user.id].get("end_stop_id", None)
+
+    def get_start_time_of_stop(journey: Journey) -> datetime.datetime:
+        if journey.type == "OUTBOUND":
+            return _get_stop_by_id(journey.stops, start_stop_id).journey_stop_time
+        else:
+            return _get_stop_by_id(journey.stops, end_stop_id).journey_stop_time
+
     tracked_journey_info = {
-        journey.journey_id: """
-        {date} {type}
-        """.format(
-            date=journey.day.strftime("%A %d/%m/%y"),
-            type=journey.type,
-        )
+        journey.journey_id: f"{get_start_time_of_stop(journey).strftime('%H:%M %A %d/%m/%y')} {journey.type}"
         for journey in tracked_journeys
     }
 
@@ -375,9 +380,7 @@ async def _untrack_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.bot_data[query.from_user.id]["tracked_journeys"] = tracked_journeys
 
     await query.edit_message_text(
-        _JOURNEY_UNTRACKED_MESSAGE.format(
-            journey_id=journey_id, journey_info="did not actually do anything lol"
-        ),
+        _JOURNEY_UNTRACKED_MESSAGE.format(journey_id=journey_id, journey_info=""),
         reply_markup=MAIN_MENU_KEYBOARD,
     )
     return _CHOSEN_TRACK_OR_UNTRACK
