@@ -14,6 +14,7 @@ from busbot.bothandlers.start import start_handler
 from busbot.bothandlers.timetable import timetable_handler
 from busbot.bothandlers.track import track_handler
 from busbot.bothandlers.error import error_handler
+from busbot.reminderer import initialise_job
 
 # I don't use this but you can use it to set commands with @botfather with /setcommands
 _ = """
@@ -57,6 +58,8 @@ def main():
     application.add_handler(track_handler)
 
     application.add_error_handler(error_handler)
+
+    initialise_job(application.job_queue)
 
     application.run_polling()
 
