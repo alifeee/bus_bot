@@ -6,6 +6,7 @@ from telegram.ext import *
 from ..busapi import Credentials, get_all_journeys
 from ..stop import Stop
 from ..journey import Journey
+from .cancel import cancel_handler
 
 credentials = Credentials("credentials.json")
 
@@ -344,5 +345,5 @@ track_handler = ConversationHandler(
             CallbackQueryHandler(_untrack_journey_id, pattern=".*")
         ],
     },
-    fallbacks=[],
+    fallbacks=[cancel_handler],
 )
