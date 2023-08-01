@@ -119,9 +119,7 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
                     chat_id=user_id,
                     text=_NO_LONGER_EXISTS_MESSAGE.format(
                         message="no longer exists",
-                        journey=_format_journey_nicely(
-                            tracked_journey, start_stop_id, end_stop_id
-                        ),
+                        journey=tracked_journey_id,
                     ),
                 )
                 context.bot_data[user_id]["tracked_journeys"].remove(tracked_journey_id)
