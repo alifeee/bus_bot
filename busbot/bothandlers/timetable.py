@@ -76,13 +76,8 @@ async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
         start_stop = journey.start_stop
         end_stop = journey.end_stop
 
-        if journey.type == "OUTBOUND":
-            time = start_stop.journey_stop_time
-        elif journey.type == "RETURN":
-            time = end_stop.journey_stop_time
-
         timetable += _TIMETABLE_ROW.format(
-            time=time.strftime("%a %H:%M"),
+            time=start_stop.journey_stop_time.strftime("%a %H:%M"),
             journeytype=journey.type,
             capacity=capacities[journey.journey_id],
         )
