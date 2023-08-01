@@ -23,6 +23,8 @@ Nice!
 Use /start to change this.
 
 Check /timetable for the capacities of all upcoming buses.
+
+To track/untrack a journey, use /track.
 """
 
 
