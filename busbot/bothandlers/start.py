@@ -32,7 +32,10 @@ _CHOOSING_END_STOP, _CONFIRMING_END_STOP = range(2)
 async def _start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     all_journeys = get_all_journeys(credentials.pass_id)
     all_stops = get_all_stops_from_journeys(all_journeys)
-    context.bot_data["all_stops"] = all_stops
+
+    if update.effective_user.id not in context.bot_data:
+        context.bot_data[update.effective_user.id] = {}
+    context.bot_data[update.effective_user.id]["all_stops"] = all_stops
 
     await update.message.reply_text(
         _START_MESSAGE.format(state="What's your start stop?"),
@@ -47,12 +50,12 @@ async def _start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _choose_end_stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    all_stops: list[Stop] = context.bot_data["all_stops"]
+    all_stops: list[Stop] = context.bot_data[update.effective_user.id]["all_stops"]
     query = update.callback_query
     await query.answer()
 
     start_stop_id = query.data
-    context.user_data["start_stop_id"] = start_stop_id
+    context.bot_data[query.from_user.id]["start_stop_id"] = start_stop_id
 
     # find the stop
     for stop in all_stops:
@@ -77,13 +80,13 @@ async def _choose_end_stop(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def _confirm_choices(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    all_stops: list[Stop] = context.bot_data["all_stops"]
+    all_stops: list[Stop] = context.bot_data[update.effective_user.id]["all_stops"]
     query = update.callback_query
     await query.answer()
 
     end_stop_id = query.data
-    context.user_data["end_stop_id"] = end_stop_id
-    start_stop_id = context.user_data["start_stop_id"]
+    context.bot_data[query.from_user.id]["end_stop_id"] = end_stop_id
+    start_stop_id = context.bot_data[query.from_user.id]["start_stop_id"]
 
     for end_stop in all_stops:
         if end_stop.stop_id == end_stop_id:

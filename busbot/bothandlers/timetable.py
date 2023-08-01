@@ -44,8 +44,8 @@ async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ConversationHandler.END
 
-    start_stop_id = context.user_data["start_stop_id"]
-    end_stop_id = context.user_data["end_stop_id"]
+    start_stop_id = context.bot_data[update.effective_user.id]["start_stop_id"]
+    end_stop_id = context.bot_data[update.effective_user.id]["end_stop_id"]
     if start_stop_id is None or end_stop_id is None:
         await message.edit_text("Start or end stop not set. Use /start.")
         return ConversationHandler.END

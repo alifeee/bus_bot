@@ -45,7 +45,7 @@ def main():
     """Start the bot!"""
     persistent_data = PicklePersistence(
         filepath="bot_data.pickle",
-        store_data=PersistenceInput(user_data=True, bot_data=False),
+        store_data=PersistenceInput(user_data=False, bot_data=True),
     )
 
     application = (

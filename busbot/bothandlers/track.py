@@ -118,8 +118,8 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
         )
         return ConversationHandler.END
 
-    start_stop_id = context.user_data.get("start_stop_id", None)
-    end_stop_id = context.user_data.get("end_stop_id", None)
+    start_stop_id = context.bot_data[query.from_user.id].get("start_stop_id", None)
+    end_stop_id = context.bot_data[query.from_user.id].get("end_stop_id", None)
     if start_stop_id is None or end_stop_id is None:
         await query.edit_message_text("Start or end stop not set. Use /start.")
         return ConversationHandler.END
@@ -161,9 +161,9 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
             journey_dict[journey_day][journey_type][journey_time] = journey_id
 
     # {day: {type: {time: journey_id}}}
-    context.user_data["journey_dict"] = journey_dict
+    context.bot_data[query.from_user.id]["journey_dict"] = journey_dict
     # {journey_id: journey_info (str)}
-    context.user_data["journey_info"] = {
+    context.bot_data[query.from_user.id]["journey_info"] = {
         journey.journey_id: JOURNEY_INFO_MESSAGE.format(
             day=journey.day.strftime("%A %d/%m"),
             time=journey.start_stop.journey_stop_time.strftime("%H:%M"),
@@ -207,8 +207,8 @@ async def _track_journey_choose_type(
         return _CHOSEN_TRACK_OR_UNTRACK
 
     chosen_day = query.data
-    context.user_data["chosen_day"] = chosen_day
-    journey_dict = context.user_data["journey_dict"]
+    context.bot_data[query.from_user.id]["chosen_day"] = chosen_day
+    journey_dict = context.bot_data[query.from_user.id]["journey_dict"]
 
     journey_types = journey_dict[chosen_day].keys()
     await query.edit_message_text(
@@ -226,8 +226,8 @@ async def _track_journey_choose_time(
     query = update.callback_query
     await query.answer()
 
-    chosen_day = context.user_data.get("chosen_day", None)
-    journey_dict = context.user_data.get("journey_dict", {})
+    chosen_day = context.bot_data[query.from_user.id].get("chosen_day", None)
+    journey_dict = context.bot_data[query.from_user.id].get("journey_dict", {})
 
     if query.data == BACK_BUTTON_TEXT:
         days_of_week_sorted = sorted(
@@ -243,7 +243,7 @@ async def _track_journey_choose_time(
         return _CHOSEN_JOURNEY_DAY
 
     chosen_type = query.data
-    context.user_data["chosen_type"] = chosen_type
+    context.bot_data[query.from_user.id]["chosen_type"] = chosen_type
 
     journey_times = journey_dict[chosen_day][chosen_type]
 
@@ -262,12 +262,12 @@ async def _track_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    chosen_day = context.user_data.get("chosen_day", None)
-    chosen_type = context.user_data.get("chosen_type", None)
+    chosen_day = context.bot_data[query.from_user.id].get("chosen_day", None)
+    chosen_type = context.bot_data[query.from_user.id].get("chosen_type", None)
     chosen_time = query.data
 
-    journey_dict = context.user_data.get("journey_dict", {})
-    journey_info = context.user_data.get("journey_info", {})
+    journey_dict = context.bot_data[query.from_user.id].get("journey_dict", {})
+    journey_info = context.bot_data[query.from_user.id].get("journey_info", {})
 
     if query.data == BACK_BUTTON_TEXT:
         journey_types = journey_dict[chosen_day].keys()
@@ -280,11 +280,11 @@ async def _track_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return _CHOSEN_JOURNEY_TYPE
 
     chosen_journey_id = journey_dict[chosen_day][chosen_type][chosen_time]
-    tracked_journeys = context.user_data.get("tracked_journeys", [])
+    tracked_journeys = context.bot_data[query.from_user.id].get("tracked_journeys", [])
     tracked_journeys.append(chosen_journey_id)
-    context.user_data["tracked_journeys"] = tracked_journeys
+    context.bot_data[query.from_user.id]["tracked_journeys"] = tracked_journeys
 
-    user_data = context.user_data
+    user_data = context.bot_data[query.from_user.id]
     user_data.pop("chosen_day", None)
     user_data.pop("chosen_type", None)
     user_data.pop("journey_dict", None)
@@ -306,7 +306,9 @@ async def _untrack_journey(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup([[]]),
     )
 
-    tracked_journey_ids: list[str] = context.user_data.get("tracked_journeys", [])
+    tracked_journey_ids: list[str] = context.bot_data[query.from_user.id].get(
+        "tracked_journeys", []
+    )
 
     if len(tracked_journey_ids) == 0:
         await query.edit_message_text(
@@ -366,9 +368,11 @@ async def _untrack_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE
         return _CHOSEN_TRACK_OR_UNTRACK
 
     journey_id = query.data
-    tracked_journeys: list[str] = context.user_data.get("tracked_journeys", [])
+    tracked_journeys: list[str] = context.bot_data[query.from_user.id].get(
+        "tracked_journeys", []
+    )
     tracked_journeys.remove(journey_id)
-    context.user_data["tracked_journeys"] = tracked_journeys
+    context.bot_data[query.from_user.id]["tracked_journeys"] = tracked_journeys
 
     await query.edit_message_text(
         _JOURNEY_UNTRACKED_MESSAGE.format(
@@ -383,6 +387,11 @@ async def _done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     await query.edit_message_text(_DONE_MESSAGE)
+
+    # clear temp user data
+    context.bot_data[query.from_user.id]["journey_dict"] = {}
+    context.bot_data[query.from_user.id]["journey_info"] = {}
+
     return ConversationHandler.END
 
 
