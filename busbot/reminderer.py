@@ -105,7 +105,9 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
 
         start_stop_id = data["start_stop_id"]
         end_stop_id = data["end_stop_id"]
-        tracked_journey_ids = data.get("tracked_journeys", [])
+        tracked_journey_ids = [
+            journey_id for journey_id in data.get("tracked_journeys", [])
+        ]
 
         # get all journeys
         all_journeys = get_all_journeys(credentials.pass_id)
