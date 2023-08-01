@@ -133,9 +133,9 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
 
             # get capacities
             if start_stop_id not in [s.stop_id for s in tracked_journey.stops]:
-                continue
+                raise ValueError("Start stop not in journey")
             if end_stop_id not in [s.stop_id for s in tracked_journey.stops]:
-                continue
+                raise ValueError("End stop not in journey")
 
             if tracked_journey.type == "OUTBOUND":
                 start_stop = _get_stop_by_id(tracked_journey.stops, start_stop_id)
