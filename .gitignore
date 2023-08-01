@@ -11,3 +11,4 @@ credentials.json
 
 # cache
 bot_data.pickle
+historical_capacities.json
