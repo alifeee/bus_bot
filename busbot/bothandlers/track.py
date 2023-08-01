@@ -389,8 +389,14 @@ async def _done(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.edit_message_text(_DONE_MESSAGE)
 
     # clear temp user data
-    context.bot_data[query.from_user.id]["journey_dict"] = {}
-    context.bot_data[query.from_user.id]["journey_info"] = {}
+    try:
+        context.bot_data[query.from_user.id].pop("journey_dict")
+    except KeyError:
+        pass
+    try:
+        context.bot_data[query.from_user.id].pop("journey_info")
+    except KeyError:
+        pass
 
     return ConversationHandler.END
 

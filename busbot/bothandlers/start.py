@@ -105,6 +105,8 @@ async def _confirm_choices(update: Update, context: ContextTypes.DEFAULT_TYPE):
             state=f"Your start stop is: {start_stop.name}\nYour end stop is: {end_stop.name}"
         )
     )
+
+    context.bot_data[query.from_user.id].pop("all_stops")
     return ConversationHandler.END
 
 
