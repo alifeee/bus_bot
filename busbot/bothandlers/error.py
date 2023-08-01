@@ -33,5 +33,8 @@ Error: {context.error}
     )
     print(context)
     logger = logging.getLogger(__name__)
-    logger.error("Update %s caused error %s", update.update_id, context.error)
+    try:
+        logger.error("Update %s caused error %s", update.update_id, context.error)
+    except AttributeError:
+        logger.error("Update caused error %s", context.error)
     # raise context.error
