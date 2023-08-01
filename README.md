@@ -97,6 +97,7 @@ sudo apt install python3.10-venv
 python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
+echo {} >> historical_data.json
 tmux new -s bus_bot
 ```
 
