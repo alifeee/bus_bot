@@ -26,6 +26,7 @@ Pick a journey to track and I'll send you a text whenever it has seats available
 
 _JOURNEY_TRACKED_MESSAGE = """
 Perfect! You're now tracking journey {journey_id}:
+
 {journey_info}
 
 ...until it has been completed.
@@ -66,6 +67,7 @@ JOURNEY_INFO_MESSAGE = """{day} {time}: {start} to {stop}
 
 
 def ikb(text: str):
+    """shorthand for making an inline keyboard button with text as callback data"""
     return InlineKeyboardButton(text, callback_data=text)
 
 
@@ -95,7 +97,7 @@ def _get_journey_by_id(journeys: list[Journey], journey_id: str) -> Journey:
     return None
 
 
-async def _track(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def _track(update: Update, _):
     await update.message.reply_text(
         _INITIAL_MESSAGE,
         reply_markup=MAIN_MENU_KEYBOARD,
@@ -106,7 +108,6 @@ async def _track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
-
     await query.edit_message_text("Loading journeys...")
 
     all_journeys = get_all_journeys(credentials.pass_id)
@@ -116,11 +117,13 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
             _track_journey_choose_day"""
         )
         return ConversationHandler.END
+
     start_stop_id = context.user_data.get("start_stop_id", None)
     end_stop_id = context.user_data.get("end_stop_id", None)
     if start_stop_id is None or end_stop_id is None:
         await query.edit_message_text("Start or end stop not set. Use /start.")
         return ConversationHandler.END
+
     relevant_journeys: list[Journey] = []
     for journey in all_journeys:
         if start_stop_id not in [s.stop_id for s in journey.stops]:
@@ -138,7 +141,6 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
 
         journey.start_stop = start_stop
         journey.end_stop = end_stop
-
     if len(relevant_journeys) == 0:
         await query.edit_message_text(
             "No journeys found between your two stops. Use /start or complain to Alfie"
@@ -218,7 +220,7 @@ async def _track_journey_choose_type(
     return _CHOSEN_JOURNEY_TYPE
 
 
-async def _track_journey_choose_journey(
+async def _track_journey_choose_time(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ):
     query = update.callback_query
@@ -396,7 +398,7 @@ track_handler = ConversationHandler(
             CallbackQueryHandler(_track_journey_choose_type, pattern=".*")
         ],
         _CHOSEN_JOURNEY_TYPE: [
-            CallbackQueryHandler(_track_journey_choose_journey, pattern=".*")
+            CallbackQueryHandler(_track_journey_choose_time, pattern=".*")
         ],
         _CHOSEN_JOURNEY_TIME: [CallbackQueryHandler(_track_journey_id, pattern=".*")],
         _CHOSEN_JOURNEY_TO_UNTRACK: [

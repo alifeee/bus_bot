@@ -16,6 +16,7 @@ class Journey:
     stops: list[Stop]
     day: datetime.date
 
+    # only used for "active" journeys
     start_stop: Optional[Stop] = None
     end_stop: Optional[Stop] = None
 
