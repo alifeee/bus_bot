@@ -82,7 +82,7 @@ def has_changed_capacity(journey1, journey2):
 def initialise_job(job_queue: JobQueue):
     job_queue.run_repeating(
         _check_capacity,
-        interval=datetime.timedelta(seconds=15),
+        interval=datetime.timedelta(minutes=15),
         first=0,
         name="check_capacity",
     )
