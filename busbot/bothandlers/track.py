@@ -52,6 +52,10 @@ _DONE_MESSAGE = """
 Super. Enjoy.
 """
 
+JOURNEY_INFO_MESSAGE = """{day} {time}: {start} to {stop}
+{type}
+"""
+
 (
     _CHOSEN_TRACK_OR_UNTRACK,
     _CHOSEN_JOURNEY_DAY,
@@ -146,7 +150,7 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
         journey_id = journey.journey_id
         journey_time = journey.start_stop.journey_stop_time.strftime("%H:%M")
         journey_type = journey.type
-        journey_day = journey.day_and_date()
+        journey_day = journey.day.strftime("%A %d/%m")
         if journey_day not in journey_dict:
             journey_dict[journey_day] = {}
         if journey_type not in journey_dict[journey_day]:
@@ -156,6 +160,18 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
 
     # {day: {type: {time: journey_id}}}
     context.user_data["journey_dict"] = journey_dict
+    # {journey_id: journey_info (str)}
+    context.user_data["journey_info"] = {
+        journey.journey_id: JOURNEY_INFO_MESSAGE.format(
+            day=journey.day.strftime("%A %d/%m"),
+            time=journey.start_stop.journey_stop_time.strftime("%H:%M"),
+            start=journey.start_stop.name,
+            stop=journey.end_stop.name,
+            type=journey.type,
+        )
+        for journey in relevant_journeys
+    }
+
 
     days_of_week_sorted = sorted(journey_dict.keys(), key=lambda x: x.split(" ")[-1])
 
@@ -240,7 +256,9 @@ async def _track_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chosen_day = context.user_data.get("chosen_day", None)
     chosen_type = context.user_data.get("chosen_type", None)
     chosen_time = query.data
+
     journey_dict = context.user_data.get("journey_dict", {})
+    journey_info = context.user_data.get("journey_info", {})
 
     if query.data == BACK_BUTTON_TEXT:
         journey_types = journey_dict[chosen_day].keys()
@@ -264,7 +282,7 @@ async def _track_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await query.edit_message_text(
         _JOURNEY_TRACKED_MESSAGE.format(
-            journey_id=chosen_journey_id, journey_info="NO INFO YET"
+            journey_id=chosen_journey_id, journey_info=journey_info[chosen_journey_id]
         ),
         reply_markup=MAIN_MENU_KEYBOARD,
     )
@@ -274,21 +292,54 @@ async def _track_journey_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def _untrack_journey(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
+    await query.edit_message_text(
+        "loading...",
+        reply_markup=InlineKeyboardMarkup([[]]),
+    )
 
     tracked_journey_ids: list[str] = context.user_data.get("tracked_journeys", [])
 
     if len(tracked_journey_ids) == 0:
-        try:
-            await query.edit_message_text(
-                _NO_JOURNEYS_TRACKED_MESSAGE, reply_markup=MAIN_MENU_KEYBOARD
-            )
-        finally:
-            return _CHOSEN_TRACK_OR_UNTRACK
+        await query.edit_message_text(
+            _NO_JOURNEYS_TRACKED_MESSAGE, reply_markup=MAIN_MENU_KEYBOARD
+        )
+        return _CHOSEN_TRACK_OR_UNTRACK
+
+    all_journeys = get_all_journeys(credentials.pass_id)
+
+    tracked_journeys = [
+        _get_journey_by_id(all_journeys, journey_id)
+        for journey_id in tracked_journey_ids
+    ]
+    tracked_journeys = [journey for journey in tracked_journeys if journey is not None]
+
+    tracked_journey_info = {
+        journey.journey_id: """
+        {date} {type}
+        """.format(
+            date=journey.day.strftime("%A %d/%m/%y"),
+            type=journey.type,
+        )
+        for journey in tracked_journeys
+    }
 
     await query.edit_message_text(
         _UNTRACK_JOURNEY_MESSAGE,
         reply_markup=InlineKeyboardMarkup(
-            [*[[ikb(journey_id)] for journey_id in tracked_journey_ids], [BACK_BUTTON]]
+            [
+                *[
+                    [
+                        InlineKeyboardButton(
+                            tracked_journey_info[journey_id]
+                            if journey_id in tracked_journey_info
+                            else journey_id,
+                            callback_data=journey_id,
+                        )
+                    ]
+                    for journey_id in tracked_journey_ids
+                ],
+                [BACK_BUTTON],
+            ]
         ),
     )
     return _CHOSEN_JOURNEY_TO_UNTRACK
