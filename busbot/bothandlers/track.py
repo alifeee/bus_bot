@@ -172,8 +172,15 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
         for journey in relevant_journeys
     }
 
+    def month_then_day(date: str):
+        """date must be 'Day DD/MM'
+        returns str 'MMDD' for better sorting"""
+        time_bit = date.split(" ")[-1]
+        month = time_bit.split("/")[-1]
+        day = time_bit.split("/")[-2]
+        return f"{month}{day}"
 
-    days_of_week_sorted = sorted(journey_dict.keys(), key=lambda x: x.split(" ")[-1])
+    days_of_week_sorted = sorted(journey_dict.keys(), key=month_then_day)
 
     await query.edit_message_text(
         _TRACK_JOURNEY_MESSAGE.format(day="", type=""),
