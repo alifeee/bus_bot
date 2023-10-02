@@ -109,6 +109,10 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
             journey_id for journey_id in data.get("tracked_journeys", [])
         ]
 
+        logger.info("Found %d tracked journeys", len(tracked_journey_ids))
+        if len(tracked_journey_ids) == 0:
+            continue
+
         # get all journeys
         all_journeys = get_all_journeys(credentials.pass_id)
 
@@ -148,10 +152,6 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
             tracked_journey.end_stop = end_stop
 
             tracked_journeys.append(tracked_journey)
-
-        logger.info("Found %d tracked journeys", len(tracked_journeys))
-        if len(tracked_journeys) == 0:
-            continue
 
         capacities = get_journey_capacities(tracked_journeys)
 
