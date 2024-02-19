@@ -98,7 +98,6 @@ python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
 echo {} >> historical_capacities.json
-tmux new -s bus_bot
 ```
 
 ### Move over secrets
@@ -112,29 +111,11 @@ scp .env root@...:~/python/bus_bot/
 
 ```bash
 ssh root@...
-tmux attach -t bus_bot
 cd ~/python/bus_bot
-source env/bin/activate
-python ./bot.py
-# Ctrl+B, D to detach from tmux
-```
-
-### List tmux sessions
-
-```bash
-tmux ls
-```
-
-### Attach to tmux session
-
-```bash
-tmux attach -t bus_bot
-```
-
-### Kill tmux session
-
-```bash
-tmux kill-session -t bus-bot
+cp bus_bot.service /etc/systemd/system/bus_bot.service
+sudo systemctl enable bus_bot.service
+sudo systemctl start bus_bot.service
+sudo systemctl status bus_bot.service
 ```
 
 ### Update
