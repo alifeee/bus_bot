@@ -88,8 +88,9 @@ application = Application.builder().token(API_KEY).persistence(persistent_data).
 ### Set up environment on server
 
 ```bash
-ssh root@...
-cd ~/python
+ssh server
+mkdir -p /usr/alifeee
+cd /usr/alifeee
 git clone https://github.com/alifeee/bus_bot.git
 cd bus_bot
 sudo apt-get update
@@ -98,20 +99,25 @@ python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
 echo {} >> historical_capacities.json
+# create user
+sudo adduser --system --no-create-home --group bus_bot
+sudo chown -R alifeee:bus_bot .
+chmod g=rw historical_capacities.json
+chmod g=rw bot_data.pickle
 ```
 
 ### Move over secrets
 
 ```bash
-scp google_credentials.json root@...:~/python/bus_bot/
-scp .env root@...:~/python/bus_bot/
+scp google_credentials.json server:/env/alifeee/bus_bot/
+scp .env server:/usr/alifeee/bus_bot/
 ```
 
 ### Run bot
 
 ```bash
-ssh root@...
-cd ~/python/bus_bot
+ssh server
+cd /usr/alifeee/bus_bot
 cp bus_bot.service /etc/systemd/system/bus_bot.service
 sudo systemctl enable bus_bot.service
 sudo systemctl start bus_bot.service
@@ -121,8 +127,8 @@ sudo systemctl status bus_bot.service
 ### Update
 
 ```bash
-ssh root@...
-cd ~/python/bus_bot
+ssh server
+cd /usr/alifeee/bus_bot
 git pull
 ```
 

@@ -3,8 +3,11 @@ Description=Zeelo BusBot, API scraper and displayer
 After=network.target
 
 [Service]
-ExecStart=/root/python/bus_bot/env/bin/python bot.py
-WorkingDirectory=/root/python/bus_bot
+User=bus_bot
+Group=bus_bot
+
+ExecStart=/usr/alifeee/bus_bot/env/bin/python bot.py
+WorkingDirectory=/usr/alifeee/bus_bot
 
 Restart=always
 RestartSec=10
