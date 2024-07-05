@@ -103,8 +103,6 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
     for user_id, data in bot_data.items():
         logger.info("Checking capacity for user %s", user_id)
 
-        start_stop_id = data["start_stop_id"]
-        end_stop_id = data["end_stop_id"]
         tracked_journey_ids = [
             journey_id for journey_id in data.get("tracked_journeys", [])
         ]
@@ -112,6 +110,9 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
         logger.info("Found %d tracked journeys", len(tracked_journey_ids))
         if len(tracked_journey_ids) == 0:
             continue
+
+        start_stop_id = data["start_stop_id"]
+        end_stop_id = data["end_stop_id"]
 
         # get all journeys
         all_journeys = get_all_journeys(credentials.pass_id)
