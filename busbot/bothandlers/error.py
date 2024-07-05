@@ -29,9 +29,9 @@ async def error_handler(
     """Sends traceback to admin."""
     bot = context.bot
     try:
-        admin_id = os.environ["ADMIN_USER_ID"]
+        admin_ids = os.environ["ADMIN_USER_IDS"]
     except KeyError as error:
-        raise ValueError("ADMIN_USER_ID environment variable not set.") from error
+        raise ValueError("ADMIN_USER_IDS environment variable not set.") from error
 
     try:
         tbs = traceback.format_tb(context.error.__traceback__)
@@ -39,30 +39,33 @@ async def error_handler(
     except AttributeError:
         err_traceback = ""
 
-    if update is not None:
-        await bot.send_message(
-            chat_id=admin_id,
-            text=_ERROR_MESSAGE.format(
-                user=update.effective_user,
-                chat=update.effective_chat,
-                update=update,
-                job="N/A",
-                error=context.error,
-                trace=err_traceback,
-            ),
-        )
-    elif context.job is not None:
-        await bot.send_message(
-            chat_id=admin_id,
-            text=_ERROR_MESSAGE.format(
-                user="N/A",
-                chat="N/A",
-                update="N/A",
-                job=context.job.name,
-                error=context.error,
-                trace=err_traceback,
-            ),
-        )
+    admin_ids = admin_ids.split(",")
+
+    for admin_id in admin_ids:
+        if update is not None:
+            await bot.send_message(
+                chat_id=admin_id,
+                text=_ERROR_MESSAGE.format(
+                    user=update.effective_user,
+                    chat=update.effective_chat,
+                    update=update,
+                    job="N/A",
+                    error=context.error,
+                    trace=err_traceback,
+                ),
+            )
+        elif context.job is not None:
+            await bot.send_message(
+                chat_id=admin_id,
+                text=_ERROR_MESSAGE.format(
+                    user="N/A",
+                    chat="N/A",
+                    update="N/A",
+                    job=context.job.name,
+                    error=context.error,
+                    trace=err_traceback,
+                ),
+            )
 
     print(context)
     logger = logging.getLogger(__name__)
