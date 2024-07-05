@@ -1,5 +1,6 @@
 import datetime
 import pickle
+import sys
 import json
 from pprint import pprint
 from pybars import Compiler
@@ -11,6 +12,7 @@ with open("feed.hbs", 'r') as file:
   template = file.read()
 
 data_json = json.loads(json.dumps(data))
+print(data_json, file=sys.stderr)
 
 compiler = Compiler()
 template = compiler.compile(template)
