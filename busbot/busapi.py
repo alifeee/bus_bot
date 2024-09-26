@@ -9,7 +9,7 @@ import requests
 from .stop import Stop
 from .journey import Journey
 
-REQUEST_TIMEOUT = 15
+REQUEST_TIMEOUT = 30
 
 ELIGIBLE_JOURNEYS_URL = (
     "https://app.zeelo.co/api/travels/{pass_id}/elegible-journey-groups"
