@@ -4,6 +4,7 @@ import datetime
 from telegram import *
 from telegram.ext import *
 
+import logging
 from ..busapi import Credentials, get_all_journeys
 from ..stop import Stop
 from ..journey import Journey
@@ -98,7 +99,15 @@ def _get_journey_by_id(journeys: list[Journey], journey_id: str) -> Journey:
     return None
 
 
-async def _track(update: Update, _):
+async def _track(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    start_stop_id = context.bot_data.get(
+      update.effective_user.id, {}).get("start_stop_id")
+    end_stop_id = context.bot_data.get(
+      update.effective_user.id, {}).get("end_stop_id")
+    if start_stop_id is None or end_stop_id is None:
+      await update.message.reply_text("Start or end stop not set. Use /start.")
+      return ConversationHandler.END
+
     await update.message.reply_text(
         _INITIAL_MESSAGE,
         reply_markup=MAIN_MENU_KEYBOARD,
@@ -119,8 +128,10 @@ async def _track_journey_choose_day(update: Update, context: ContextTypes.DEFAUL
         )
         return ConversationHandler.END
 
-    start_stop_id = context.bot_data[query.from_user.id].get("start_stop_id", None)
-    end_stop_id = context.bot_data[query.from_user.id].get("end_stop_id", None)
+    start_stop_id = context.bot_data.get(
+      query.from_user.id, {}).get("start_stop_id")
+    end_stop_id = context.bot_data.get(
+      query.from_user.id, {}).get("end_stop_id")
     if start_stop_id is None or end_stop_id is None:
         await query.edit_message_text("Start or end stop not set. Use /start.")
         return ConversationHandler.END
