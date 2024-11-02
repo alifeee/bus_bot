@@ -4,6 +4,7 @@ from telegram.ext import *
 
 from ..busapi import Credentials, get_all_journeys, get_all_stops_from_journeys
 from ..stop import Stop
+from .cancel import cancel_handler
 
 credentials = Credentials("credentials.json")
 
@@ -30,6 +31,8 @@ To track/untrack a journey, use /track.
 
 _CHOOSING_END_STOP, _CONFIRMING_END_STOP = range(2)
 
+async def _show_cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("use /cancel to quit setup")
 
 async def _start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     all_journeys = get_all_journeys(credentials.pass_id)
@@ -115,8 +118,14 @@ async def _confirm_choices(update: Update, context: ContextTypes.DEFAULT_TYPE):
 start_handler = ConversationHandler(
     entry_points=[CommandHandler("start", _start)],
     states={
-        _CHOOSING_END_STOP: [CallbackQueryHandler(_choose_end_stop, pattern="^.*$")],
-        _CONFIRMING_END_STOP: [CallbackQueryHandler(_confirm_choices, pattern="^.*$")],
+        _CHOOSING_END_STOP: [
+          CallbackQueryHandler(_choose_end_stop, pattern="^.*$"),
+          MessageHandler(~ filters.Regex(r"/cancel"), _show_cancel)
+        ],
+        _CONFIRMING_END_STOP: [
+          CallbackQueryHandler(_confirm_choices, pattern="^.*$"),
+          MessageHandler(~ filters.Regex(r"/cancel"), _show_cancel)
+        ],
     },
-    fallbacks=[],
+    fallbacks=[cancel_handler],
 )
