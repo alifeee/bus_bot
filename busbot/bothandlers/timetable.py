@@ -2,7 +2,10 @@
 from telegram import *
 from telegram.ext import *
 
-from ..busapi import Credentials, get_all_journeys, get_journey_capacities
+from requests import ReadTimeout
+
+import logging
+from ..busapi import Credentials, get_all_journeys, get_journey_capacities, REQUEST_TIMEOUT
 from ..stop import Stop
 from ..journey import Journey
 
@@ -35,19 +38,39 @@ def _get_journey_by_id(journeys: list[Journey], journey_id: str) -> Journey:
 
 
 async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = await update.message.reply_text("Getting timetable...")
-    all_journeys = get_all_journeys(credentials.pass_id)
+    logger = logging.getLogger(__name__)
+    user_id = update.message.from_user.id
+    logger.info("user %s asked for timetable", user_id)
+    message = await update.message.reply_text(
+      "Getting timetable..."
+      f"\nallowing {REQUEST_TIMEOUT} seconds for Zeelo to respond..."
+    )
+
+    start_stop_id = context.bot_data.get(
+      update.effective_user.id, {}).get("start_stop_id")
+    end_stop_id = context.bot_data.get(
+      update.effective_user.id, {}).get("end_stop_id")
+    logger.info("  start_stop_id is: %s", start_stop_id)
+    logger.info("    end_stop_id is: %s", end_stop_id)
+    if start_stop_id is None or end_stop_id is None:
+        logger.info("  telling user to use /start")
+        await message.edit_text("Start or end stop not set. Use /start.")
+        return ConversationHandler.END
+
+    try:
+      all_journeys = get_all_journeys(credentials.pass_id)
+    except ReadTimeout:
+      logger.info("get all journeys request timed out")
+      await message.reply_text(
+        f"zeelo took longer than {REQUEST_TIMEOUT} s to respond"
+        "\ntry again?"
+      )
+      return ConversationHandler.END
 
     if len(all_journeys) == 0:
         await message.edit_text(
-            "Something went wrong... no journeys found. Try again? or ask Alfie"
+            "Something went wrong... no journeys found. Try again?"
         )
-        return ConversationHandler.END
-
-    start_stop_id = context.bot_data[update.effective_user.id]["start_stop_id"]
-    end_stop_id = context.bot_data[update.effective_user.id]["end_stop_id"]
-    if start_stop_id is None or end_stop_id is None:
-        await message.edit_text("Start or end stop not set. Use /start.")
         return ConversationHandler.END
 
     poll_journeys = []
@@ -69,7 +92,15 @@ async def _timetable(update: Update, context: ContextTypes.DEFAULT_TYPE):
         journey.start_stop = start_stop
         journey.end_stop = end_stop
 
-    capacities = get_journey_capacities(poll_journeys)
+    try:
+      capacities = get_journey_capacities(poll_journeys)
+    except ReadTimeout:
+      logger.info("capacities request timed out")
+      await message.reply_text(
+        f"zeelo took longer than {REQUEST_TIMEOUT} s to respond"
+        "\ntry again?"
+      )
+      return ConversationHandler.END
 
     timetable = ""
     for journey in poll_journeys:

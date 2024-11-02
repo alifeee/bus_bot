@@ -101,21 +101,25 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
     logger = logging.getLogger(__name__)
 
     for user_id, data in bot_data.items():
-        logger.info("Checking capacity for user %s", user_id)
+        logger.info("CHECKING CAPACITY FOR USER %s", user_id)
 
         tracked_journey_ids = [
             journey_id for journey_id in data.get("tracked_journeys", [])
         ]
 
-        logger.info("Found %d tracked journeys", len(tracked_journey_ids))
+        logger.info("  found %d tracked journeys", len(tracked_journey_ids))
         if len(tracked_journey_ids) == 0:
+            logger.info("  skipping...")
             continue
 
-        start_stop_id = data["start_stop_id"]
-        end_stop_id = data["end_stop_id"]
+        start_stop_id = data.get("start_stop_id", None)
+        end_stop_id = data.get("end_stop_id", None)
+        logger.info("  found start_stop_id: %s", start_stop_id)
+        logger.info("  found   end_stop_id: %s", end_stop_id)
 
         # get all journeys
         all_journeys = get_all_journeys(credentials.pass_id)
+        logger.info("  found %s journeys from zeelo", len(all_journeys))
 
         tracked_journeys = []
         for tracked_journey_id in tracked_journey_ids:
@@ -155,6 +159,7 @@ async def _check_capacity(context: ContextTypes.DEFAULT_TYPE):
             tracked_journeys.append(tracked_journey)
 
         capacities = get_journey_capacities(tracked_journeys)
+        logger.info("  found %s capacities from zeelo", len(capacities))
 
         # compare capacities
         for journey_id, capacity in capacities.items():
