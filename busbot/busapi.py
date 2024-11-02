@@ -125,6 +125,8 @@ def get_journey_capacities(
     response.raise_for_status()
 
     result = json.loads(response.text)
+    if result == []:
+      result = {}
 
     return result
 
