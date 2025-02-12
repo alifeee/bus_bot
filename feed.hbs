@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>BusBot users</title>
-  <link href='https://server.alifeee.co.uk/static/bus_bot.xml' rel='self' />
+  <link href='https://server.alifeee.net/static/bus_bot.xml' rel='self' />
   <updated>{{now}}</updated>
-  <id>https://server.alifeee.co.uk/static/bus_bot.xml</id>
+  <id>https://server.alifeee.net/static/bus_bot.xml</id>
 
   {{#each bot_data}}
   <entry>
     <title>{{@key}}</title>
     <author><name>{{@key}}</name></author>
-    <id>https://server.alifeee.co.uk/static/bus_bot.xml#{{@key}}_{{start_stop_id}}_{{end_stop_id}}__{{len tracked_journeys}}-journeys_{{#each tracked_journeys}}{{this}}{{/each}}</id>
+    <id>https://server.alifeee.net/static/bus_bot.xml#{{@key}}_{{start_stop_id}}_{{end_stop_id}}__{{len tracked_journeys}}-journeys_{{#each tracked_journeys}}{{this}}{{/each}}</id>
     <summary>{{@key}}_{{start_stop_id}}_{{end_stop_id}}</summary>
     <content>{{@key}}_{{start_stop_id}}_{{end_stop_id}}__{{len tracked_journeys}}-journeys_{{#each tracked_journeys}}{{this}}{{/each}}</content>
     <updated>{{now}}</updated>
