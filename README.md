@@ -1,3 +1,5 @@
+> [!CAUTION]
+> MOVED! see <https://git.alifeee.net/bus_bot/about/>
 # Bus bot
 
 Telegram bot to notify when seats are available on a bus.
